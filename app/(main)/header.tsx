@@ -147,7 +147,6 @@ function Header() {
           </p>
         </button>
         <section className="flex items-center gap-2">
-          <DriverBadge />
           <div className="hidden sm:block">
             <Links />
           </div>
