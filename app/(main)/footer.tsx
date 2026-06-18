@@ -41,7 +41,7 @@ export default function Footer() {
       <section className="flex flex-col">
         <section className={`mt-1 flex items-center gap-2 ${baseTextStyles}`}>
           <FooterLink href={GITHUB_URL}>{t("a_303-585_GitHub")}</FooterLink>{t("section_607-869_2020")}
-          {currentYear} | a <FooterLink href={GITHUB_URL}>York Chou</FooterLink> project
+          {currentYear} | a <FooterLink href={PERSONAL_URL}>York Chou</FooterLink> project
         </section>
       </section>
       <p className={`mt-1 ${baseTextStyles}`}>
