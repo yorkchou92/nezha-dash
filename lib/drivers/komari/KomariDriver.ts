@@ -49,7 +49,11 @@ export class KomariDriver extends BaseDriver {
   /**
    * Convert Komari server data to Nezha-compatible format
    */
-  private convertKomariToNezha(komariServer: KomariServer, timestamp: number): NezhaAPI {
+  private convertKomariToNezha(
+    komariServer: KomariServer,
+    timestamp: number,
+    displayIndex?: number,
+  ): NezhaAPI {
     // Generate a numeric ID from UUID for compatibility
     const id = Math.abs(
       komariServer.uuid
@@ -75,7 +79,7 @@ export class KomariDriver extends BaseDriver {
       ipv4: "",
       ipv6: "",
       valid_ip: "",
-      display_index: komariServer.weight,
+      display_index: displayIndex ?? komariServer.weight,
       hide_for_guest: komariServer.hidden,
       host: {
         Platform: komariServer.os,
@@ -170,10 +174,14 @@ export class KomariDriver extends BaseDriver {
       result: [],
     }
 
-    // Fetch recent data for each server concurrently
-    const serverPromises = komariDataFiltered.map(async (komariServer) => {
+    // Fetch recent data for each server concurrently.
+    // Preserve Komari's original ordering: the frontend sorts by display_index
+    // descending, so give the first server the highest index.
+    const totalServers = komariDataFiltered.length
+    const serverPromises = komariDataFiltered.map(async (komariServer, index) => {
+      const displayIndex = totalServers - index
       try {
-        const nezhaServer = this.convertKomariToNezha(komariServer, timestamp)
+        const nezhaServer = this.convertKomariToNezha(komariServer, timestamp, displayIndex)
 
         // Try to get recent data for this server
         const recentResponse = await fetch(
@@ -197,7 +205,7 @@ export class KomariDriver extends BaseDriver {
       } catch (error) {
         console.warn(`Failed to fetch recent data for server ${komariServer.uuid}:`, error)
         // Return server without recent data if fetch fails
-        const nezhaServer = this.convertKomariToNezha(komariServer, timestamp)
+        const nezhaServer = this.convertKomariToNezha(komariServer, timestamp, displayIndex)
         nezhaServer.online_status = false
         const safeServer = { ...nezhaServer }
         safeServer.ipv4 = undefined as any
