@@ -174,11 +174,14 @@ export class KomariDriver extends BaseDriver {
       result: [],
     }
 
-    // Fetch recent data for each server concurrently.
-    // Preserve Komari's original ordering: the frontend sorts by display_index
-    // descending, so give the first server the highest index.
-    const totalServers = komariDataFiltered.length
-    const serverPromises = komariDataFiltered.map(async (komariServer, index) => {
+    // Match Komari's ordering: Komari displays nodes by `weight` ascending
+    // (lowest weight first). The API, however, returns nodes in created_at
+    // order, so we must re-sort by weight before assigning display indices.
+    // The frontend sorts by display_index descending, so the lowest-weight
+    // server needs the highest display_index.
+    const komariDataSorted = [...komariDataFiltered].sort((a, b) => a.weight - b.weight)
+    const totalServers = komariDataSorted.length
+    const serverPromises = komariDataSorted.map(async (komariServer, index) => {
       const displayIndex = totalServers - index
       try {
         const nezhaServer = this.convertKomariToNezha(komariServer, timestamp, displayIndex)
